@@ -14,7 +14,7 @@ This script was created because i needed something that worked on both FreeBSD a
 This script has been worked on over time, and was started to just take snapshots one at a time and send them to a slave.
 I started out with a script i found here: http://www.aisecure.net/2012/01/11/automated-zfs-incremental-backups-over-ssh/ and worked on that. Over time a lot of stuff was added here and there, then was rewritten, moved around, more functionality added, more moving arround, rewritten, and so on and so on. Therefore some logic might seem weird in some places, but a lot of it will take care of unexpected situations i ended up in, and now this has been running in production on some of my systems, both Linux and FreeBSD, and seem to be running error free.
 
-Yes there are maybe too many ssh calls, and there are alot of stuff that could be done better, but you are welcome to run with this, and do whatever you want with it.
+I'm a sysadmin, not a coder, so there will be some "sledgehammer" approches in the script, but it works. Please feel free to do with this what you want, and i hope this will make your life easier.
 
 You can find documentation and how to use it in the script itself.
 

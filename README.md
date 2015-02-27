@@ -1,5 +1,5 @@
 # zfs-replicator
-Incremental ZFS replicator for FreeBSD and ZFS-on-Linux
+Incremental ZFS replicator with grandfathering scheme support for FreeBSD and ZFS-on-Linux
 
 USAGE (should be used with crontab): zfs-replicator.sh (generation-name) (number of snapshots to keep)
 

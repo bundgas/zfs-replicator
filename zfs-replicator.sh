@@ -126,8 +126,9 @@ snapshot_now="$pool@$prefix-$snapname-$now"
 
 if zfs list -H -o name -t snapshot | sort | grep -e "$snapshot_now$" > /dev/null; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now, already exists on master" >> $logfile
- echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
- exit 1
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+ echo "$monitor_critical_prefix $snapshot_now, already exists on master. Something is wrong." > $monitor_output
+ exit 0
 fi
 
 # take a snapshot
@@ -135,8 +136,9 @@ if zfs snapshot -r $snapshot_now >> $logfile; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - Snapshot $snapshot_now taken" >> $logfile
 else
  echo "`date +"%Y-%m-%d %H:%M:%S"` - Couldn't take snapshot. Check your pool" >> $logfile
- echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
- exit 1
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+ echo "$monitor_critical_prefix Couldn't take snapshot. Check your pool." > $monitor_output
+ exit 0
 fi
 
 # Check if slave is online
@@ -154,9 +156,10 @@ fi
 # Check if snapshot exists on slave (it really shouldn't but just to be sure)
 if [ $slavestatus = "up" ]; then
  if ssh $user@$host zfs list -H -o name -t snapshot | sort | grep "$snapshot_now$" > /dev/null; then
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now, already exists on slave" >> $logfile
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
-  exit 1
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now already exists on slave" >> $logfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  echo "$monitor_critical_prefix $snapshot_now already exists on slave. Something is wrong." > $monitor_output
+  exit 0
  fi
 fi
 

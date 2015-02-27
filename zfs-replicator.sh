@@ -1,5 +1,5 @@
 #!/bin/sh
-# ZFS replicator - By Kenneth Lutzke - kml@bundgas.dk
+# ZFS replicator v. 0.9 - By Kenneth Lutzke - kml@bundgas.dk
 # ----------------------------------------------------------------------------
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <kml@bundgas.dk> wrote this file. As long as you retain this notice you
@@ -28,8 +28,9 @@
 # You can create manual snapshots on the master, as long as you don't name your snapshot with the same prefix as in this script. If you create a
 # snapshots on the slave, it will be destroyed as soon as this script is run again. This is how ZFS recursive send/receive works...
 #
-# For this script to work, ssh keys with no passphrase must first be set up so that a user (ex. root) can ssh from the master to the slave without
-# being prompted for login.
+# For this script to work, you need to do the following things:
+# - ssh keys with no passphrase must first be set up so that a user (ex. root) can ssh from the master to the slave without being prompted for login.
+# - create a pool with the same name as the master-pool, that you want replicated, on the slave.
 #
 # Example of use with crontab (*1min schedule should only be used for testing, or on pools with few filesystems and low io).
 #
@@ -52,8 +53,10 @@
 # transfer everything incrementally to the slave. Because the script picks up snapshots missed for transfer on the next round, it is ok if it
 # doesn't make it on time every time, but if your increments are set too often, you are probably in for a bumpy ride.
 #
+# The script outputs a log and monitor output. The monitor output can be used for monitoring software such as Nagios.
+#
 # If you want to be extra sure that you get monitor-output if the script fails, run it in crontab like this:
-# 15,30,45 * * * *  root   /root/zfs-replicator.sh 15min 4 || echo "SCRIPT-FAILED: Sync script failed - Check manually!!!" >> /path/to/monitor-file.txt
+# 15,30,45 * * * *  root   /root/zfs-replicator.sh 15min 4 || echo "CRITICAL - Sync script failed - Check manually!!!" >> /path/to/monitor-file
 # ----------------------------------------------------------------------------
 
 sleep 1
@@ -68,7 +71,7 @@ prefix="autosnap"   # Prefix for main snapshot name (will be the same for all ge
 logfile="/var/log/zfs-replicator.log"   # Main logfile. Put this somewhere with log rotation.
 lastsucclog="/root/tmp/zfs-replicator-last-successful.log"   # For script to know last successful transfer. Put this somewhere that is persistant over reboots.
 lockfile="/tmp/zfs-replicator.lock"   # Script lock file. Put this in /tmp/
-monitor_output="/root/tmp/zfs-replicator-varcheck.txt"   # Output file for monitoring software (Nagios or other).
+monitor_output="/root/tmp/zfs-replicator-monitor.txt"   # Output file for monitoring software (Nagios or other).
 monitor_warn_prefix="WARNING -" # Prefix for monitor software (ex. Nagios). Just leave as is if you don't know what to put here.
 monitor_critical_prefix="CRITICAL -" # Prefix for monitor software (ex. Nagios). Just leave as is if you don't know what to put here.
 

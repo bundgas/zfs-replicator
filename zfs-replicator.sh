@@ -25,6 +25,9 @@
 # in handy when you really want the data deleted forever. So if you need the snapshots kept, don't destroy the filesystem, delete the data inside
 # the filesystem instead, and destroy it when it has "trickeled through" your generations.
 #
+# You can create manual snapshots on the master, as long as you don't name your snapshot with the same prefix as in this script. If you create a
+# snapshots on the slave, it will be destroyed as soon as this script is run again. This is how ZFS recursive send/receive works...
+#
 # For this script to work, ssh keys with no passphrase must first be set up so that a user (ex. root) can ssh from the master to the slave without
 # being prompted for login.
 #

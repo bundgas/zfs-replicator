@@ -19,3 +19,6 @@ Yes there are maybe too many ssh calls, and there are alot of stuff that could b
 You can find documentation and how to use it in the script itself.
 
 Enjoy :)
+
+- Kenneth Lutzke
+- kml@bundgas.dk

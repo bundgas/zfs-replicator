@@ -10,7 +10,7 @@ If the slave is down, or the script is already running, a snapshot will still be
 If you are running multible generations, cleaning of the individual generation will not interfer with other generations.
 
 This script was created because i needed something that worked on both FreeBSD and Linux (ZFS-on-Linux), and all
-the other scripts i tried, failed or didn't work, or were too complicated for me to make work.
+the other scripts i tried failed or didn't work, or were too complicated for me to make work.
 
 This script has been worked on over time, and was started to just take snapshots one at a time and send them to a slave.
 I started out with a script i found here: http://www.aisecure.net/2012/01/11/automated-zfs-incremental-backups-over-ssh/

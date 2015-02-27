@@ -20,5 +20,4 @@ You can find documentation and how to use it in the script itself.
 
 Enjoy :)
 
-- Kenneth Lutzke
-- kml@bundgas.dk
+Kenneth Lutzke - kml@bundgas.dk

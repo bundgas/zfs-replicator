@@ -1,7 +1,7 @@
 # zfs-replicator
 Incremental ZFS replicator for FreeBSD and ZFS-on-Linux
 
-USAGE (should be used with crontab): zfs-replicator.sh <generation-name> <number of snapshots to keep>
+USAGE (should be used with crontab): zfs-replicator.sh (generation-name) (number of snapshots to keep)
 
 This script recursively snapshots a given pool, and replicates it to another host (slave). It supports grandfathering schemes (generations) on both master and slave (mirrored), all controlled from the master with this script and crontab.
 Only the first snapshot will be sent in 100% size, all following snapshots will be sent incrementally.

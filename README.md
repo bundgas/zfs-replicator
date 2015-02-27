@@ -16,7 +16,7 @@ I started out with a script i found here: http://www.aisecure.net/2012/01/11/aut
 
 I'm a sysadmin, not a coder, so there will be some "sledgehammer" approches in the script, but it works. Please feel free to do with this what you want, and i hope this will make your life easier.
 
-You can find documentation and how to use it in the script itself. Read the documentation, and fill out the config-area of the scritp, and you should be ready to go.
+You can find documentation and how to use it in the script itself. Read the documentation, and fill out the config-area of the script, and you should be ready to go.
 
 Enjoy :)
 

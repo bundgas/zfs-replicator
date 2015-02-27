@@ -12,11 +12,11 @@ If you are running multible generations, cleaning of the individual generation w
 This script was created because i needed something that worked on both FreeBSD and Linux (ZFS-on-Linux), and all the other scripts i tried failed or didn't work, or were too complicated for me to make work.
 
 This script has been worked on over time, and was started to just take snapshots one at a time and send them to a slave.
-I started out with a script i found here: http://www.aisecure.net/2012/01/11/automated-zfs-incremental-backups-over-ssh/ and worked on that. Over time a lot of stuff was added here and there, then was rewritten, moved around, more functionality added, more moving arround, rewritten, and so on and so on. Therefore some logic might seem weird in some places, but a lot of it will take care of unexpected situations i ended up in, and now this has been running in production on some of my systems, both Linux (Ubuntu 12.04 and 14.04) and FreeBSD (10.0 and 10.1), and seem to be running error free.
+I started out with a script i found here: http://www.aisecure.net/2012/01/11/automated-zfs-incremental-backups-over-ssh/ and worked on that. Over time a lot of stuff was added here and there, then was rewritten, moved around, more functionality added, more moving arround, rewritten, and so on and so on. Therefore some logic might seem weird in some places, but a lot of it will take care of unexpected situations i ended up in, and now this has been running in production on some of my systems, both Linux (Ubuntu 12.04 and 14.04) and FreeBSD (10.0 and 10.1), and seem to be running error free. This script does not work on Solaris. Maybe someone will pick that up.
 
 I'm a sysadmin, not a coder, so there will be some "sledgehammer" approches in the script, but it works. Please feel free to do with this what you want, and i hope this will make your life easier.
 
-You can find documentation and how to use it in the script itself.
+You can find documentation and how to use it in the script itself. Read the documentation, and fill out the config-area of the scritp, and you should be ready to go.
 
 Enjoy :)
 

@@ -69,8 +69,8 @@ logfile="/var/log/zfs-replicator.log"   # Main logfile. Put this somewhere with 
 lastsucclog="/root/tmp/zfs-replicator-last-successful.log"   # For script to know last successful transfer. Put this somewhere that is persistant over reboots.
 lockfile="/tmp/zfs-replicator.lock"   # Script lock file. Put this in /tmp/
 monitor_output="/root/tmp/zfs-replicator-varcheck.txt"   # Output file for monitoring software (Nagios or other).
-monitor_warn_prefix="WARNING - " # Prefix for monitor software (ex. Nagios). Just leave as is if you don't know what to put here.
-monitor_critical_prefix="CRITICAL - " # Prefix for monitor software (ex. Nagios). Just leave as is if you don't know what to put here.
+monitor_warn_prefix="WARNING -" # Prefix for monitor software (ex. Nagios). Just leave as is if you don't know what to put here.
+monitor_critical_prefix="CRITICAL -" # Prefix for monitor software (ex. Nagios). Just leave as is if you don't know what to put here.
 
 ##### /CONFIG #####
 

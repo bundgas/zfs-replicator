@@ -116,7 +116,6 @@ if [ ! -f $monitor_output ]; then
  echo "Logfile: $monitor_output doesn't exist - Trying to touch"
  if ! touch $monitor_output; then
   echo "Cannot create $monitor_output - Please create the directory-structure manually"
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
   exit 1
  fi
 fi

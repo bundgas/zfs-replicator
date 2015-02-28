@@ -6,7 +6,7 @@
 # can do whatever you want with this stuff. If we meet some day, and you think
 # this stuff is worth it, you can buy me a beer in return. -Kenneth Lutzke
 # ----------------------------------------------------------------------------
-# DISCLAIMER: YOU RUN THIS AT YOUR OWN RISK!!! If you don't agree with that, don't run this script.
+# DISCLAIMER: YOU RUN THIS AT YOUR OWN RISK!!! If you don't agree, don't run this script.
 # ----------------------------------------------------------------------------
 # USAGE (should be used with crontab): zfs-replicator.sh <generation-name> <number of snapshots to keep>
 #

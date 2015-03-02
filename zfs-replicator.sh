@@ -77,14 +77,46 @@ monitor_critical_prefix="CRITICAL -" # Prefix for monitor software (ex. Nagios).
 
 ##### /CONFIG #####
 
+# check logfiles
+if [ ! -f $logfile ]; then
+ echo "Logfile: $logfile doesn't exist - Trying to touch"
+ if ! touch $logfile; then
+  echo "Cannot create $logfile - Please create the directory-structure manually"
+  exit 1
+ fi
+fi
+
+if [ ! -f $lastsucclog ]; then
+ echo "Logfile: $lastsucclog doesn't exist - Trying to touch"
+ echo "Logfile: $lastsucclog doesn't exist - Trying to touch" >> $logfile
+ if ! touch $lastsucclog; then
+  echo "Cannot create $lastsucclog - Please create the directory-structure manually"
+  echo "Cannot create $lastsucclog - Please create the directory-structure manually" >> $logfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
+  exit 1
+ fi
+fi
+
+if [ ! -f $monitor_output ]; then
+ echo "Logfile: $monitor_output doesn't exist - Trying to touch"
+ echo "Logfile: $monitor_output doesn't exist - Trying to touch" >> $logfile
+ if ! touch $monitor_output; then
+  echo "Cannot create $monitor_output - Please create the directory-structure manually"
+  echo "Cannot create $monitor_output - Please create the directory-structure manually" >> $logfile
+  exit 1
+ fi
+fi
+
 # check inputs
 if [ -z "$1" ]; then
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - no generation defined. Execute this script with name of the generation. Ex: './zfs-replicator.sh hourly 12' would name this generation 'hourly'"
  echo "`date +"%Y-%m-%d %H:%M:%S"` - no generation defined. Execute this script with name of the generation. Ex: './zfs-replicator.sh hourly 12' would name this generation 'hourly'" >> $logfile
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
  exit 1
 fi
 
 if [ -z "$2" ]; then
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - no keep rule defined. Execute this script with the number of this generation to keep. Ex: './zfs-replicator.sh hourly 12' would keep 12 snapshots of the generation 'hourly'"
  echo "`date +"%Y-%m-%d %H:%M:%S"` - no keep rule defined. Execute this script with the number of this generation to keep. Ex: './zfs-replicator.sh hourly 12' would keep 12 snapshots of the generation 'hourly'" >> $logfile
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
  exit 1
@@ -93,34 +125,7 @@ fi
 snapname="$1"
 keep="$2"
 
-# check logfiles
-if [ ! -f $logfile ]; then
- echo "Logfile: $logfile doesn't exist - Trying to touch"
- if ! touch $logfile; then
-  echo "Cannot create $logfile - Please create the directory-structure manually"
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
-  exit 1
- fi
-fi
-
-if [ ! -f $lastsucclog ]; then
- echo "Logfile: $lastsucclog doesn't exist - Trying to touch"
- if ! touch $lastsucclog; then
-  echo "Cannot create $lastsucclog - Please create the directory-structure manually"
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting with exit code 1" >> $logfile
-  exit 1
- fi
-fi
-
-if [ ! -f $monitor_output ]; then
- echo "Logfile: $monitor_output doesn't exist - Trying to touch"
- if ! touch $monitor_output; then
-  echo "Cannot create $monitor_output - Please create the directory-structure manually"
-  exit 1
- fi
-fi
-
-echo "`date +"%Y-%m-%d %H:%M:%S"` - Script started" >> $logfile
+echo "`date +"%Y-%m-%d %H:%M:%S"` - Script started - Checks are OK" >> $logfile
 
 # Check if snapshot already exists on master
 now=`date +"%Y-%m-%d_%H.%M"`

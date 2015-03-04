@@ -11,7 +11,7 @@ The script outputs log and monitor output. The monitor output can be used for mo
 
 If the slave is down, or the script is already running, a snapshot will still be taken, and it will be synced with other missed snapshots when the slave is up again. While the slave is down, no cleaning will be done on the master or the slave, so snapshots will build up on the master until the slave is synced again. As soon as the master and slave are in sync again, cleaning will kick in and obey the keep rule(s).
 
-If you are running multible generations, cleaning of the individual generation will not interfer with other generations.
+If you are running multible generations, cleaning of the individual generation will not interfere with other generations.
 
 This script was created because i needed something that worked on both FreeBSD and Linux (ZFS-on-Linux), and all the other scripts i tried failed, didn't work (on FreeBSD or Linux or both), were not suited, were overkill, or were too complicated for me to make work.
 

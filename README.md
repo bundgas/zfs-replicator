@@ -19,7 +19,7 @@ This script has been worked on over time, and was started to just take snapshots
 
 I'm a sysadmin, not a coder, so there will be some "sledgehammer" approches in the script, but it works. Please feel free to do with this what you want, and i hope this will make your life easier.
 
-You can find documentation and how to use it in the script itself. Read the documentation, and fill out the config-area of the script, and you should be ready to go.
+You can find documentation and how to use it in the script itself. Read the documentation, fill out the config-area of the script, set up your sceme in crontab, and you should be ready to go.
 
 Enjoy :)
 

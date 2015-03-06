@@ -14,10 +14,10 @@
 # on both master and slave (mirrored), all controlled from the master with this script and crontab.
 # Only the first snapshot will be sent in 100% size, all following snapshots will be sent incrementally.
 #
-# If the slave is down, or the script is already running, a snapshot will still be taken, and it will be synced with other missed snapshots
-# when the slave is up again. While the slave is down, no cleaning will be done on the master or the slave, so snapshots will build up on the
-# master until the slave is synced again. As soon as the master and slave are in sync again, cleaning will kick in and obey the keep rule(s).
-# If you are running multible generations, cleaning of the individual generation will not interfer with other generations.
+# If the slave is down, or the script is already running (ex. in case of a big initial sync that takes time), a snapshot will still be taken,
+# and it will be synced with other missed snapshots when the slave is up and the script is not already running. While the slave is down or the
+# script is already running, no cleaning will be done on the master or the slave, so snapshots will build up on the master until the slave is
+# synced again. As soon as the master and slave are in sync again, cleaning will kick in and obey the keep rule(s).
 #
 # BE VERY CAREFUL WITH "zfs destroy -r":
 # If you destroy a filesystem on the master, it will destroy the filesystem on the slave too, including all the snapshots (across all generations)
@@ -40,12 +40,13 @@
 # 0 1-5,7-11,13-17,19-23 * * *             root   /root/zfs-replicator.sh 1hour 6
 # 0 0,6,12,18 * * *                        root   /root/zfs-replicator.sh 6hour 9
 #
-# The example is set on FreeBSD. On linux you might need to remove "root" before the command entry.
+# The example is set on FreeBSD. On Linux you might need to remove "root" in front of the command entry.
 # This would give you 1 snapshot every minute for 5 minutes, 1 snapshot every 5 minutes for 15 minutes, 1 snapshot every 15 minutes for 1 hour,
 # 1 snapshot every hour for 6 hours, and 1 snapshot every 6 hours for 2 days* (* 2 day = 8 snapshots. The 9 in the example is because you need
 # one extra snapshot in the end to be able to go 2 whole days back, or that snapshot will just have have been destroyed, and you could now only
 # go 1 day and 18 hours back. This is not a problem for 1min, 5min, 15min or 1hour schedules in the above example, as they all overlap 1 snapshot
-# with the next generation.
+# with the next generation. Because of the way cleaning doesn't interfere with other generations, there will sometimes be leftover snapshots,
+# where the generations overlap, but they will be automatically cleaned up on the next run of the script with that generation.
 #
 # * 1min schedule will most likely only work smoothly with very few filesystems with nearly no writing IO, as it can take some time to sync each 
 # filesystem. This would give you a lot of overlapping script-executions, and you will end up with a snapshot backlog, which would probably

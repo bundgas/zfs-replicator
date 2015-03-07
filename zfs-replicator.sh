@@ -173,9 +173,9 @@ fi
 
 # Check if script is already running
 if [ -f $lockfile ]; then
- echo "`date +"%Y-%m-%d %H:%M:%S"` - script started, but already seems running. Skipping this round. Maybe adjust your snapshot increments." >> $logfile
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - script started, but already seems to be running. A snapshot was taken. No sync or cleaning will be performed on this round. Maybe adjust your snapshot increments if this appers often." >> $logfile
  if [ ! -z "$monitor_output" ]; then
-  echo "$monitor_warn_prefix $snapshot_now didn't sync to $host - Script already seems to be running. Check manually if this persists, or appers often." > $monitor_output
+  echo "$monitor_warn_prefix Snapshot $snapshot_now was taken, but didn't sync to $host - Script already seems to be running. Check manually if this persists, or appers often." > $monitor_output
  fi
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
  exit 0
@@ -204,7 +204,7 @@ else
   echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on master" >> $logfile
   if [ $slavestatus = "up" ] ; then
    if ssh $user@$host zfs list -H -o name -t snapshot | grep "$lastsucc$" > /dev/null; then
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave, lets proceed with backup" >> $logfile
+    echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave - starting incremental sync" >> $logfile
     if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; then
      echo "`date +"%Y-%m-%d %H:%M:%S"` - snapshots have been taken by this script after $lastsucc that were not synced. Syncing those first" >> $logfile
      while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; do

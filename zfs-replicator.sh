@@ -189,17 +189,18 @@ touch $lockfile
 
 # Transfer snapshot(s) to slave
 if [ -z "$lastsucc" ]; then
- echo "`date +"%Y-%m-%d %H:%M:%S"` - no last successful snapshot - syncing initial snapshot $snapshot_now" >> $logfile
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - No last successful snapshot - syncing initial snapshot $snapshot_now" >> $logfile
  if zfs send -R $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then
   echo "lastsucc=$snapshot_now" > $lastsucclog
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully send to $host . no cleanup on this round." >> $logfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - Initial snapshot $snapshot_now was successfully send to $host . No cleanup on this round." >> $logfile
   echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  rm $lockfile
   exit 0
  else
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - zfs send $snapshot_now to $host failed." >> $logfile
-  echo "$monitor_critical_prefix zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output
-  rm $lockfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - Initial snapshot $snapshot_now failed to sync to $host ." >> $logfile
+  echo "$monitor_critical_prefix Initial snapshot $snapshot_now failed to sync to $host ." > $monitor_output
   echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  rm $lockfile
   exit 0
  fi
 else

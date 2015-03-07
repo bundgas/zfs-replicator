@@ -1,0 +1,8 @@
+# Changelog
+
+07-03-2015 - v. 0.9.1:
+  - Bug fix. Removed cleanup from initial snapshot round, as it might destroy the common snapshot.
+  - Log beautification.
+  - Added documentation.
+
+27-02-2015 - v. 0.9 - First release.

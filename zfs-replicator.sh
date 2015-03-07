@@ -194,6 +194,7 @@ if [ -z "$lastsucc" ]; then
   echo "lastsucc=$snapshot_now" > $lastsucclog
   echo "`date +"%Y-%m-%d %H:%M:%S"` - Initial snapshot $snapshot_now was successfully send to $host . No cleanup on this round." >> $logfile
   echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  echo -n "" > $monitor_output
   rm $lockfile
   exit 0
  else
@@ -261,9 +262,14 @@ lastsucc=$snapshot_now
 # master
 if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$keep" ]; then
  while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $keep ))" ]; do
-  if [ $lastsucc != `zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1` ] ; then 
-   echo "`date +"%Y-%m-%d %H:%M:%S"` - destroying snapshot `zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1` from master in cleaning process - nom nom nom..." >> $logfile
-   zfs destroy -r `zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1` >> $logfile
+  cleanmaster=`zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
+  if [ $lastsucc != $cleanmaster ] ; then
+   if zfs destroy -r $cleanmaster >> $logfile ; then
+    echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanmaster from master in cleaning process." >> $logfile
+   else
+    echo "`date +"%Y-%m-%d %H:%M:%S"` - Cannot destroy snapshot $cleanmaster from master in cleaning process. Check manually if this persists." >> $logfile
+    echo "$monitor_warn_prefix Cannot destroy snapshot $cleanmaster from master in cleaning process. Check manually if this persists." > $monitor_output
+   fi
   else
    echo "`date +"%Y-%m-%d %H:%M:%S"` - Last successful snapshot $lastsucc ended up in cleanup process on the master somehow, but will not be destroyed. Stopping cleanup. Check manually if this persists, or appers often." >> $logfile
    echo "$monitor_warn_prefix Last successful snapshot $lastsucc ended up in cleanup process on the master somehow. Stopping cleanup. Check manually if this persists, or appers often." > $monitor_output
@@ -277,9 +283,14 @@ fi
 # slave
 if [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$keep" ]; then
  while [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $keep ))" ]; do
-  if [ $lastsucc != `ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1` ] ; then
-   echo "`date +"%Y-%m-%d %H:%M:%S"` - destroying snapshot `ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1` from slave in cleaning process - nom nom nom..." >> $logfile
-   ssh $user@$host zfs destroy -r `ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1` >> $logfile
+  cleanslave=`ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
+  if [ $lastsucc != $cleanslave ] ; then
+   if ssh $user@$host zfs destroy -r $cleanslave >> $logfile ; then
+    echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanslave from slave in cleaning process." >> $logfile
+   else
+    echo "`date +"%Y-%m-%d %H:%M:%S"` - Cannot destroy snapshot $cleanslave from slave in cleaning process. Check manually if this persists." >> $logfile
+    echo "$monitor_warn_prefix Cannot destroy snapshot $cleanslave from slave in cleaning process. Check manually if this persists." > $monitor_output
+   fi
   else
    echo "`date +"%Y-%m-%d %H:%M:%S"` - Last successful snapshot $lastsucc ended up in cleanup process on the slave somehow, but will not be destroyed. Stopping cleanup. Check manually if this persists, or appers often." >> $logfile
    echo "$monitor_warn_prefix Last successful snapshot $lastsucc ended up in cleanup process on the slave somehow. Stopping cleanup. Check manually if this persists, or appers often." > $monitor_output

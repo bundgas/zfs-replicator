@@ -2,6 +2,7 @@
 
 07-03-2015 - v. 0.9.1:
   - Bug fix. Removed cleanup from initial snapshot round, as it might destroy the common snapshot.
+  - Added check to make sure the last common snapshot doesn't get destroyed in cleanup process in general.
   - Log beautification.
   - Added documentation.
 

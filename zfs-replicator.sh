@@ -1,5 +1,5 @@
 #!/bin/sh
-# ZFS replicator v. 0.9 - By Kenneth Lutzke - kml@bundgas.dk
+# ZFS replicator v. 0.9.1 - By Kenneth Lutzke - kml@bundgas.dk
 # ----------------------------------------------------------------------------
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <kml@bundgas.dk> wrote this file. As long as you retain this notice you
@@ -55,6 +55,7 @@
 # doesn't make it on time every time, but if your increments are set too often, you are probably in for a bumpy ride.
 #
 # The script outputs a log and monitor output. The monitor output can be used for monitoring software such as Nagios.
+# It uses arcfour128 as ssh cipher. 
 #
 # If you want to be extra sure that you get monitor-output if the script fails, run it in crontab like this:
 # 15,30,45 * * * *  root   /root/zfs-replicator.sh 15min 4 || echo "CRITICAL - Sync script failed - Check manually!!!" >> /path/to/monitor-file

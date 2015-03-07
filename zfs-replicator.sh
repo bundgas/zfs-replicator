@@ -191,7 +191,9 @@ if [ -z "$lastsucc" ]; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - no last successful snapshot - syncing initial snapshot $snapshot_now" >> $logfile
  if zfs send -R $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then
   echo "lastsucc=$snapshot_now" > $lastsucclog
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully send to $host ."
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully send to $host . no cleanup on this round." >> $logfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  exit 0
  else
   echo "`date +"%Y-%m-%d %H:%M:%S"` - zfs send $snapshot_now to $host failed." >> $logfile
   echo "$monitor_critical_prefix zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output

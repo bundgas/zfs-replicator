@@ -1,5 +1,5 @@
 #!/bin/sh
-# ZFS replicator v. 0.9.1 - By Kenneth Lutzke - kml@bundgas.dk
+# ZFS replicator v. 0.9.2 - By Kenneth Lutzke - kml@bundgas.dk
 # ----------------------------------------------------------------------------
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <kml@bundgas.dk> wrote this file. As long as you retain this notice you

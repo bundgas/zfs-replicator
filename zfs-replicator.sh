@@ -150,28 +150,6 @@ else
  exit 0
 fi
 
-# Check if slave is online
-if ssh $user@$host hostname > /dev/null; then
- echo "`date +"%Y-%m-%d %H:%M:%S"` - $host (slave) is up" >> $logfile
- slavestatus="up"
-else
- echo "`date +"%Y-%m-%d %H:%M:%S"` - $host is down - doing only local snapshot - snapshot $snapshot_now will be synced when slave is up again - no cleaning will be performed" >> $logfile
- slavestatus="down"
- echo "$monitor_critical_prefix Slave ($host) seems to be down - Unable to sync to slave." > $monitor_output
- echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
- exit 0
-fi
-
-# Check if snapshot exists on slave (it really shouldn't but just to be sure)
-if [ $slavestatus = "up" ]; then
- if ssh $user@$host zfs list -H -o name -t snapshot | sort | grep "$snapshot_now$" > /dev/null; then
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now already exists on slave" >> $logfile
-  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
-  echo "$monitor_critical_prefix $snapshot_now already exists on slave. Something is wrong." > $monitor_output
-  exit 0
- fi
-fi
-
 # Check if script is already running
 if [ -f $lockfile ]; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - script started, but already seems to be running. A snapshot was taken. No sync or cleaning will be performed on this round. Maybe adjust your snapshot increments if this appers often." >> $logfile
@@ -183,6 +161,24 @@ if [ -f $lockfile ]; then
 fi
 
 touch $lockfile
+
+# Check if slave is online
+if ssh $user@$host hostname > /dev/null; then
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - $host (slave) is up" >> $logfile
+else
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - $host is down - doing only local snapshot - snapshot $snapshot_now will be synced when slave is up again - no cleaning will be performed" >> $logfile
+ echo "$monitor_critical_prefix Slave ($host) seems to be down - Unable to sync to slave." > $monitor_output
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+ exit 0
+fi
+
+# Check if snapshot exists on slave (it really shouldn't but just to be sure)
+if ssh $user@$host zfs list -H -o name -t snapshot | sort | grep "$snapshot_now$" > /dev/null; then
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now already exists on slave" >> $logfile
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+ echo "$monitor_critical_prefix $snapshot_now already exists on slave. Something is wrong." > $monitor_output
+ exit 0
+fi
 
 # Include last successful sync snapshot variable
 . $lastsucclog
@@ -207,45 +203,43 @@ if [ -z "$lastsucc" ]; then
 else
  if zfs list -H -o name -t snapshot | grep "$lastsucc$" > /dev/null; then
   echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on master" >> $logfile
-  if [ $slavestatus = "up" ] ; then
-   if ssh $user@$host zfs list -H -o name -t snapshot | grep "$lastsucc$" > /dev/null; then
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave - starting incremental sync" >> $logfile
-    if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; then
-     echo "`date +"%Y-%m-%d %H:%M:%S"` - snapshots have been taken by this script after $lastsucc that were not synced. Syncing those first" >> $logfile
-     while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; do
-      missedsnap=`zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 1 -e "^$lastsucc$"  | tail -n 1`
-      if zfs send -R -i $lastsucc $missedsnap | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then 
-       echo "`date +"%Y-%m-%d %H:%M:%S"` - Missed snapshot $missedsnap successfully synced to $host ." >> $logfile
-       echo "lastsucc=$missedsnap" > $lastsucclog
-       lastsucc=$missedsnap
-      else
-       echo "`date +"%Y-%m-%d %H:%M:%S"` - incremental zfs send $missedsnap to $host failed." >> $logfile
-       echo "$monitor_critical_prefix incremental zfs send $missedsnap to $host failed - sync failed - check manually and clear alert" > $monitor_output
-       rm $lockfile
-       echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
-       exit 0
-      fi
-     done
-    fi
-    if [ $lastsucc != $snapshot_now ] ; then
-     if zfs send -R -i $lastsucc $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then
-      echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully synced to $host ." >> $logfile
-      echo "lastsucc=$snapshot_now" > $lastsucclog
+  if ssh $user@$host zfs list -H -o name -t snapshot | grep "$lastsucc$" > /dev/null; then
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave - starting incremental sync" >> $logfile
+   if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; then
+    echo "`date +"%Y-%m-%d %H:%M:%S"` - snapshots have been taken by this script after $lastsucc that were not synced. Syncing those first" >> $logfile
+    while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; do
+     missedsnap=`zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 1 -e "^$lastsucc$"  | tail -n 1`
+     if zfs send -R -i $lastsucc $missedsnap | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then 
+      echo "`date +"%Y-%m-%d %H:%M:%S"` - Missed snapshot $missedsnap successfully synced to $host ." >> $logfile
+      echo "lastsucc=$missedsnap" > $lastsucclog
+      lastsucc=$missedsnap
      else
-      echo "`date +"%Y-%m-%d %H:%M:%S"` - incremental zfs send $snapshot_now to $host failed." >> $logfile
-      echo "$monitor_critical_prefix incremental zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output
+      echo "`date +"%Y-%m-%d %H:%M:%S"` - incremental zfs send $missedsnap to $host failed." >> $logfile
+      echo "$monitor_critical_prefix incremental zfs send $missedsnap to $host failed - sync failed - check manually and clear alert" > $monitor_output
       rm $lockfile
       echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
       exit 0
      fi
-    fi
-   else
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - Snapshot $lastsucc doesn't exist on slave, but stated in $lastsucclog - exiting." >> $logfile
-    echo "$monitor_critical_prefix incremental zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output
-    rm $lockfile
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
-    exit 0
+    done
    fi
+   if [ $lastsucc != $snapshot_now ] ; then
+    if zfs send -R -i $lastsucc $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then
+     echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully synced to $host ." >> $logfile
+     echo "lastsucc=$snapshot_now" > $lastsucclog
+    else
+     echo "`date +"%Y-%m-%d %H:%M:%S"` - incremental zfs send $snapshot_now to $host failed." >> $logfile
+     echo "$monitor_critical_prefix incremental zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output
+     rm $lockfile
+     echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+     exit 0
+    fi
+   fi
+  else
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - Snapshot $lastsucc doesn't exist on slave, but stated in $lastsucclog - exiting." >> $logfile
+   echo "$monitor_critical_prefix incremental zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output
+   rm $lockfile
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+   exit 0
   fi
  else
   echo "`date +"%Y-%m-%d %H:%M:%S"` - Snapshot $lastsucc doesn't exist on master, but stated in $lastsucclog - exiting." >> $logfile

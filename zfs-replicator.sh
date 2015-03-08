@@ -169,6 +169,7 @@ else
  echo "`date +"%Y-%m-%d %H:%M:%S"` - $host is down - doing only local snapshot - snapshot $snapshot_now will be synced when slave is up again - no cleaning will be performed" >> $logfile
  echo "$monitor_critical_prefix Slave ($host) seems to be down - Unable to sync to slave." > $monitor_output
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+ rm $lockfile
  exit 0
 fi
 
@@ -177,6 +178,7 @@ if ssh $user@$host zfs list -H -o name -t snapshot | sort | grep "$snapshot_now$
  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now already exists on slave" >> $logfile
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
  echo "$monitor_critical_prefix $snapshot_now already exists on slave. Something is wrong." > $monitor_output
+ rm $lockfile
  exit 0
 fi
 

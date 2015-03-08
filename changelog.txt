@@ -1,7 +1,7 @@
 # Changelog
 
 08-03-2015 - v. 0.9.2:
-  - Added logging and monitoring to cleaning process.
+  - Added logging and monitoring to cleanup process.
 
 07-03-2015 - v. 0.9.1:
   - Bug fix. Removed cleanup from initial snapshot round, as it might destroy the common snapshot.

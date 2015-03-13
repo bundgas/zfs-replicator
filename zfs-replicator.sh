@@ -256,52 +256,48 @@ lastsucc=$snapshot_now
 
 # snapshot cleaning
 # master
-if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$keep" ]; then
- while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $keep ))" ]; do
-  cleanmaster=`zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
-  if [ $lastsucc != $cleanmaster ] ; then
-   if zfs destroy -r $cleanmaster >> $logfile ; then
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanmaster from master in cleaning process." >> $logfile
-   else
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - Cannot destroy snapshot $cleanmaster from master in cleaning process. Stopping cleanup. Check manually if this persists." >> $logfile
-    echo "$monitor_warn_prefix Cannot destroy snapshot $cleanmaster from master in cleaning process. Stopping cleanup. Check manually if this persists." > $monitor_output
-    rm $lockfile
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
-    exit 0
-   fi
+while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $keep ))" ]; do
+ cleanmaster=`zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
+ if [ $lastsucc != $cleanmaster ] ; then
+  if zfs destroy -r $cleanmaster >> $logfile ; then
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanmaster from master in cleaning process." >> $logfile
   else
-   echo "`date +"%Y-%m-%d %H:%M:%S"` - Last successful snapshot $lastsucc ended up in cleanup process on the master somehow, but will not be destroyed. Stopping cleanup. Check manually if this persists, or appers often." >> $logfile
-   echo "$monitor_warn_prefix Last successful snapshot $lastsucc ended up in cleanup process on the master somehow. Stopping cleanup. Check manually if this persists, or appers often." > $monitor_output
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - Cannot destroy snapshot $cleanmaster from master in cleaning process. Stopping cleanup. Check manually if this persists." >> $logfile
+   echo "$monitor_warn_prefix Cannot destroy snapshot $cleanmaster from master in cleaning process. Stopping cleanup. Check manually if this persists." > $monitor_output
    rm $lockfile
    echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
    exit 0
   fi
- done
-fi
+ else
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - Last successful snapshot $lastsucc ended up in cleanup process on the master somehow, but will not be destroyed. Stopping cleanup. Check manually if this persists, or appers often." >> $logfile
+  echo "$monitor_warn_prefix Last successful snapshot $lastsucc ended up in cleanup process on the master somehow. Stopping cleanup. Check manually if this persists, or appers often." > $monitor_output
+  rm $lockfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  exit 0
+ fi
+done
 
 # slave
-if [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$keep" ]; then
- while [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $keep ))" ]; do
-  cleanslave=`ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
-  if [ $lastsucc != $cleanslave ] ; then
-   if ssh $user@$host zfs destroy -r $cleanslave >> $logfile ; then
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanslave from slave in cleaning process." >> $logfile
-   else
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - Cannot destroy snapshot $cleanslave from slave in cleaning process. Stopping cleanup. Check manually if this persists." >> $logfile
-    echo "$monitor_warn_prefix Cannot destroy snapshot $cleanslave from slave in cleaning process. Stopping cleanup. Check manually if this persists." > $monitor_output
-    rm $lockfile
-    echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
-    exit 0
-   fi
+while [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $keep ))" ]; do
+ cleanslave=`ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
+ if [ $lastsucc != $cleanslave ] ; then
+  if ssh $user@$host zfs destroy -r $cleanslave >> $logfile ; then
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanslave from slave in cleaning process." >> $logfile
   else
-   echo "`date +"%Y-%m-%d %H:%M:%S"` - Last successful snapshot $lastsucc ended up in cleanup process on the slave somehow, but will not be destroyed. Stopping cleanup. Check manually if this persists, or appers often." >> $logfile
-   echo "$monitor_warn_prefix Last successful snapshot $lastsucc ended up in cleanup process on the slave somehow. Stopping cleanup. Check manually if this persists, or appers often." > $monitor_output
+   echo "`date +"%Y-%m-%d %H:%M:%S"` - Cannot destroy snapshot $cleanslave from slave in cleaning process. Stopping cleanup. Check manually if this persists." >> $logfile
+   echo "$monitor_warn_prefix Cannot destroy snapshot $cleanslave from slave in cleaning process. Stopping cleanup. Check manually if this persists." > $monitor_output
    rm $lockfile
    echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
    exit 0
   fi
- done
-fi
+ else
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - Last successful snapshot $lastsucc ended up in cleanup process on the slave somehow, but will not be destroyed. Stopping cleanup. Check manually if this persists, or appers often." >> $logfile
+  echo "$monitor_warn_prefix Last successful snapshot $lastsucc ended up in cleanup process on the slave somehow. Stopping cleanup. Check manually if this persists, or appers often." > $monitor_output
+  rm $lockfile
+  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+  exit 0
+ fi
+done
 
 # end
 echo -n "" > $monitor_output

@@ -12,8 +12,8 @@
 # * optional. If not used, master keep rule will be mirrored.
 # This script is meant to be run by crontab. See examples below.
 #
-# This script recursively snapshots a given pool, and replicates it to another host (slave). It supports grandfathering schemes (generations)
-# on both master and slave with mirrored or different keep rules, all controlled from the master with this script and crontab.
+# This script recursively snapshots a given pool, and replicates it to another host (slave) with properties. It supports grandfathering schemes
+# (generations) on both master and slave with mirrored or different keep rules, all controlled from the master with this script and crontab.
 # Only the first snapshot will be sent in 100% size, all following snapshots will be sent incrementally.
 #
 # If the slave is down, or the script is already running (ex. in case of a big initial sync that takes time), a snapshot will still be taken,

@@ -216,7 +216,7 @@ fi
 
 # Check if there are mounted filesystems on the slave
 if [ `ssh $user@$host zfs get mounted | grep "^$pool[ /]" | grep -v "@" | grep " yes " | wc -l` -ne "0" ]; then
- echo "`date +"%Y-%m-%d %H:%M:%S"` - The following filesystem(s) is/are mounted on the slave: `ssh $user@$host zfs get mounted | grep "^$pool[ /]" | grep -v "@" | grep " yes " | cut -f1 -d" " | tr '\n' ' '`. Please unmount the filesystem(s) manually. If the script fails to sync after unmounting all the filesystems, you might need to do a recursive rollback to the last successful snapshot on the slave. No sync or cleanup this round." >> $logfile
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - The following filesystem(s) is/are mounted on the slave: `ssh $user@$host zfs get mounted | grep "^$pool[ /]" | grep -v "@" | grep " yes " | cut -f1 -d" " | tr '\n' ' '`. Please unmount the filesystem(s) manually. If the script fails to sync after unmounting all the filesystems, you might need to do a recursive rollback to the last successful snapshot on the slave. Snapshot taken, but no sync or cleanup this round." >> $logfile
  echo "$monitor_critical_prefix filesystem(s) mounted on slave. See logfile on master and unmount filesystem(s) manually on the slave. Snapshot taken, but no sync or cleanup this round." > $monitor_output
  rm $lockfile
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile

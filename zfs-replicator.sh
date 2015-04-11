@@ -186,12 +186,10 @@ if [ -f $lockfile ]; then
  exit 0
 fi
 
- if ! touch $lockfile; then
-  echo "Cannot create lock file $lockfile - Please check your config." >> $logfile
-  exit 1
- fi
-
-touch $lockfile
+if ! touch $lockfile; then
+ echo "Cannot create lock file $lockfile - Please check your config." >> $logfile
+ exit 1
+fi
 
 # Check if slave is online
 if ssh $user@$host hostname > /dev/null; then

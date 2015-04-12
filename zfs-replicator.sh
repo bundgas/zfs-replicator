@@ -188,7 +188,8 @@ fi
 
 if ! touch $lockfile; then
  echo "Cannot create lock file $lockfile - Please check your config." >> $logfile
- exit 1
+ echo "$monitor_critical_prefix Can't create lockfile. Something is wrong. Snapshot taken, but no sync or cleaning." > $monitor_output
+ exit 0
 fi
 
 # Check if slave is online
@@ -236,6 +237,7 @@ if [ -z "$lastsucc" ]; then
    echo "`date +"%Y-%m-%d %H:%M:%S"` - Could not check or set option on slave filesystems (canmount=noauto) - No cleanup this round. Check slave filesystems manually if this persists." >> $logfile
    echo "$monitor_warn_prefix Could not check or set option on slave filesystems (canmount=noauto) - No cleanup this round. Check slave filesystems manually if this persists." > $monitor_output
    echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
+   rm $lockfile
    exit 0
   fi
   echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
@@ -307,6 +309,7 @@ if echo "for setnoauto in \$(for fs in \$(zfs list -H -o name -t snapshot | grep
 else
  echo "`date +"%Y-%m-%d %H:%M:%S"` - Could not check or set option on slave filesystems (canmount=noauto) - No cleanup this round. Check slave filesystems manually if this persists." >> $logfile
  echo "$monitor_warn_prefix Could not check or set option on slave filesystems (canmount=noauto) - No cleanup this round. Check slave filesystems manually if this persists." > $monitor_output
+ rm $lockfile
  exit 0
 fi
 

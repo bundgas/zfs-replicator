@@ -87,7 +87,7 @@ PATH=/usr/bin:/sbin:/bin
 
 pool="tank"   # Pool to replicate
 host="172.16.0.42"   # Slave address.
-user="root"   # User to ssh to slave.
+user="root"   # User to ssh to slave. If not using root, you must manually set all permissions required on master and slave filesystems for this user.
 prefix="autosnap"   # Prefix for main snapshot name (will be the same for all generations).
 logfile="/var/log/zfs-replicator.log"   # Main logfile. Put this somewhere with log rotation.
 lastsucclog="/root/tmp/zfs-replicator-last-successful.log"   # For script to know last successful transfer. Put this somewhere that is persistant over reboots.

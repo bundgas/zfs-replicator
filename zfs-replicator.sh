@@ -204,7 +204,7 @@ else
 fi
 
 # Check if snapshot exists on slave (it really shouldn't but just to be sure)
-if ssh $user@$host zfs list -H -o name -t snapshot | sort | grep "$snapshot_now$" > /dev/null; then
+if ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$snapshot_now$" > /dev/null; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now already exists on slave" >> $logfile
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
  echo "$monitor_critical_prefix $snapshot_now already exists on slave. Something is wrong." > $monitor_output
@@ -252,9 +252,9 @@ if [ -z "$lastsucc" ]; then
   exit 0
  fi
 else
- if zfs list -H -o name -t snapshot | grep "$lastsucc$" > /dev/null; then
+ if zfs list -H -o name -t snapshot | grep -e "^$lastsucc$" > /dev/null; then
   echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on master" >> $logfile
-  if ssh $user@$host zfs list -H -o name -t snapshot | grep "$lastsucc$" > /dev/null; then
+  if ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$lastsucc$" > /dev/null; then
    echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave - starting incremental sync" >> $logfile
    if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; then
     echo "`date +"%Y-%m-%d %H:%M:%S"` - snapshots have been taken by this script after $lastsucc that were not synced. Syncing those first" >> $logfile

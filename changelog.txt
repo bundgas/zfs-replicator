@@ -1,4 +1,6 @@
 # Changelog
+06-05-2015 - v. 0.9.4:
+  - Added functionality: Added destination-fs, which makes it possible to send the master pool/filesystem to a different filesystem-destination on the slave. This makes it possible to backup/replicate multible pools/filesystems to the same slave-pool.
 
 11-04-2015 - v. 0.9.3:
   - Added functionality: Changed zfs receive options and added filesystem checks to enable different keep rules for master and slave.

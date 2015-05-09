@@ -1,5 +1,5 @@
 #!/bin/sh
-# ZFS replicator v. 0.9.3 - By Kenneth Lutzke - kml@bundgas.dk
+# ZFS replicator v. 0.9.4 - By Kenneth Lutzke - kml@bundgas.dk
 # ----------------------------------------------------------------------------
 # "THE BEER-WARE LICENSE" (Revision 42):
 # <kml@bundgas.dk> wrote this file. As long as you retain this notice you
@@ -85,7 +85,8 @@ PATH=/usr/bin:/sbin:/bin
 
 ##### CONFIG #####
 
-pool="tank"   # Pool to replicate
+pool="tank"   # ZFS master pool to replicate
+destfs="tank/backups/tank-from-master"   # Destination zfs filesystem on slave. Can be the same as $pool if you want a 1-to-1 replica.
 host="172.16.0.42"   # Slave address.
 user="root"   # User to ssh to slave. If not using root, you must manually set all permissions required on master and slave filesystems for this user.
 prefix="autosnap"   # Prefix for main snapshot name (will be the same for all generations).
@@ -216,8 +217,8 @@ fi
 . $lastsucclog
 
 # Check if there are mounted filesystems on the slave
-if [ `ssh $user@$host zfs get mounted | grep "^$pool[ /]" | grep -v "@" | grep " yes " | wc -l` -ne "0" ]; then
- echo "`date +"%Y-%m-%d %H:%M:%S"` - The following filesystem(s) is/are mounted on the slave: `ssh $user@$host zfs get mounted | grep "^$pool[ /]" | grep -v "@" | grep " yes " | cut -f1 -d" " | tr '\n' ' '`. Please unmount the filesystem(s) manually. If the script fails to sync after unmounting all the filesystems, you might need to do a recursive rollback to the last successful snapshot on the slave. Snapshot taken, but no sync or cleanup this round." >> $logfile
+if [ `ssh $user@$host zfs get mounted | grep "^$destfs[ /]" | grep -v "@" | grep " yes " | wc -l` -ne "0" ]; then
+ echo "`date +"%Y-%m-%d %H:%M:%S"` - The following filesystem(s) is/are mounted on the slave: `ssh $user@$host zfs get mounted | grep "^$destfs[ /]" | grep -v "@" | grep " yes " | cut -f1 -d" " | tr '\n' ' '`. Please unmount the filesystem(s) manually. If the script fails to sync after unmounting all the filesystems, you might need to do a recursive rollback to the last successful snapshot on the slave. Snapshot taken, but no sync or cleanup this round." >> $logfile
  echo "$monitor_critical_prefix filesystem(s) mounted on slave. See logfile on master and unmount filesystem(s) manually on the slave. Snapshot taken, but no sync or cleanup this round." > $monitor_output
  rm $lockfile
  echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
@@ -227,11 +228,11 @@ fi
 # Transfer snapshot(s) to slave
 if [ -z "$lastsucc" ]; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - No last successful snapshot - syncing initial snapshot $snapshot_now" >> $logfile
- if zfs send -R $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -Fduv $pool >> $logfile; then
+ if zfs send -R $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -Fduv $destfs >> $logfile; then
   echo "lastsucc=$snapshot_now" > $lastsucclog
   echo "`date +"%Y-%m-%d %H:%M:%S"` - Initial snapshot $snapshot_now was successfully synced to $host . No cleanup on this round." >> $logfile
   # First check and set slave-filesystems to option canmount=noauto
-  if echo "for setnoauto in \$(for fs in \$(zfs list -H -o name -t snapshot | grep -e \"^$pool[ @/]\" | cut -f1 -d\"@\" | uniq) ; do zfs get canmount \$fs ; done | grep canmount | grep -v \" noauto \" | cut -f1 -d\" \") ; do zfs set canmount=noauto \$setnoauto ; done" | ssh $user@$host /bin/sh ; then
+  if echo "for setnoauto in \$(for fs in \$(zfs list -H -o name -t snapshot | grep -e \"^$destfs[ @/]\" | cut -f1 -d\"@\" | uniq) ; do zfs get canmount \$fs ; done | grep canmount | grep -v \" noauto \" | cut -f1 -d\" \") ; do zfs set canmount=noauto \$setnoauto ; done" | ssh $user@$host /bin/sh ; then
    echo "`date +"%Y-%m-%d %H:%M:%S"` - Checked option on slave filesystems (canmount=noauto)" >> $logfile
   else
    echo "`date +"%Y-%m-%d %H:%M:%S"` - Could not check or set option on slave filesystems (canmount=noauto) - No cleanup this round. Check slave filesystems manually if this persists." >> $logfile
@@ -254,13 +255,14 @@ if [ -z "$lastsucc" ]; then
 else
  if zfs list -H -o name -t snapshot | grep -e "^$lastsucc$" > /dev/null; then
   echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on master" >> $logfile
-  if ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$lastsucc$" > /dev/null; then
+  
+  if ssh $user@$host zfs list -H -o name -t snapshot | grep -e "$lastsucc$" > /dev/null; then
    echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave - starting incremental sync" >> $logfile
    if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; then
     echo "`date +"%Y-%m-%d %H:%M:%S"` - snapshots have been taken by this script after $lastsucc that were not synced. Syncing those first" >> $logfile
     while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; do
      missedsnap=`zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 1 -e "^$lastsucc$"  | tail -n 1`
-     if zfs send -R -i $lastsucc $missedsnap | ssh -c arcfour128 $user@$host zfs receive -duv $pool >> $logfile; then 
+     if zfs send -R -i $lastsucc $missedsnap | ssh -c arcfour128 $user@$host zfs receive -duv $destfs >> $logfile; then 
       echo "`date +"%Y-%m-%d %H:%M:%S"` - Missed snapshot $missedsnap successfully synced to $host ." >> $logfile
       echo "lastsucc=$missedsnap" > $lastsucclog
       lastsucc=$missedsnap
@@ -274,7 +276,7 @@ else
     done
    fi
    if [ $lastsucc != $snapshot_now ] ; then
-    if zfs send -R -i $lastsucc $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -duv $pool >> $logfile; then
+    if zfs send -R -i $lastsucc $snapshot_now | ssh -c arcfour128 $user@$host zfs receive -duv $destfs >> $logfile; then
      echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully synced to $host ." >> $logfile
      echo "lastsucc=$snapshot_now" > $lastsucclog
     else
@@ -304,7 +306,7 @@ fi
 lastsucc=$snapshot_now
 
 # Second check and set slave-filesystems to option canmount=noauto
-if echo "for setnoauto in \$(for fs in \$(zfs list -H -o name -t snapshot | grep -e \"^$pool[ @/]\" | cut -f1 -d\"@\" | uniq) ; do zfs get canmount \$fs ; done | grep canmount | grep -v \" noauto \" | cut -f1 -d\" \") ; do zfs set canmount=noauto \$setnoauto ; done" | ssh $user@$host /bin/sh ; then
+if echo "for setnoauto in \$(for fs in \$(zfs list -H -o name -t snapshot | grep -e \"^$destfs[ @/]\" | cut -f1 -d\"@\" | uniq) ; do zfs get canmount \$fs ; done | grep canmount | grep -v \" noauto \" | cut -f1 -d\" \") ; do zfs set canmount=noauto \$setnoauto ; done" | ssh $user@$host /bin/sh ; then
  echo "`date +"%Y-%m-%d %H:%M:%S"` - Checked option on slave filesystems (canmount=noauto)" >> $logfile
 else
  echo "`date +"%Y-%m-%d %H:%M:%S"` - Could not check or set option on slave filesystems (canmount=noauto) - No cleanup this round. Check slave filesystems manually if this persists." >> $logfile
@@ -337,8 +339,8 @@ while [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" |
 done
 
 # slave
-while [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-$snapname-" | wc -l` -gt "$(( $slavekeep ))" ]; do
- cleanslave=`ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$pool@$prefix-$snapname-" | head -n 1`
+while [ `ssh $user@$host zfs list -H -o name -t snapshot | grep -e "^$destfs@$prefix-$snapname-" | wc -l` -gt "$(( $slavekeep ))" ]; do
+ cleanslave=`ssh $user@$host zfs list -H -o name -t snapshot | sort | grep -e "^$destfs@$prefix-$snapname-" | head -n 1`
  if [ $lastsucc != $cleanslave ] ; then
   if ssh $user@$host zfs destroy -r $cleanslave >> $logfile ; then
    echo "`date +"%Y-%m-%d %H:%M:%S"` - Successfully destroyed snapshot $cleanslave from slave in cleaning process." >> $logfile

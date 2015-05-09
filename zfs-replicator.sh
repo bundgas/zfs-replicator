@@ -36,17 +36,21 @@
 #
 # For this script to work, you need to do the following things:
 # - SSH keys with no passphrase must first be set up so that a user (ex. root) can ssh from the master to the slave without being prompted for login.
-# - Create a pool with the same name as the master-pool, that you want replicated, on the slave, and make sure to unmount it with 'zfs unmount'.
+# - Create the destination pool or filesystem on the slave, and make sure to unmount it with 'zfs unmount'.
+#
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# EXAMPLES:
+# The examples are set on FreeBSD. On Linux you need to remove "root" in front of the command entries.
+# Please read all of example 1 as it explains, as it explains cleaning and overlap.
 #
 # Example 1 of use with crontab (*1min schedule should only be used for testing, or on pools with few filesystems and low io).
 #
-# 1-4/1,6-9/1,11-14/1,16-19/1,21-24/1,26-29/1,31-34/1,36-39/1,41-44/1,46-49/1,51-54/1,56-59/1 * * * *  root    /root/zfs-replicator.sh 1min 5
+# 1-4,6-9,11-14,16-19,21-24,26-29,31-34,36-39,41-44,46-49,51-54,56-59 * * * *  root    /root/zfs-replicator.sh 1min 5
 # 5,10,20,25,35,40,50,55 * * * *           root   /root/zfs-replicator.sh 5min 3
 # 15,30,45 * * * *                         root   /root/zfs-replicator.sh 15min 4
 # 0 1-5,7-11,13-17,19-23 * * *             root   /root/zfs-replicator.sh 1hour 6
 # 0 0,6,12,18 * * *                        root   /root/zfs-replicator.sh 6hour 9
 #
-# The example is set on FreeBSD. On Linux you might need to remove "root" in front of the command entry.
 # This would give you 1 snapshot every minute for 5 minutes, 1 snapshot every 5 minutes for 15 minutes, 1 snapshot every 15 minutes for 1 hour,
 # 1 snapshot every hour for 6 hours, and 1 snapshot every 6 hours for 2 days* (* 2 days = 8 snapshots. The 9 in the example is because you need
 # one extra snapshot in the end to be able to go 2 whole days back, or that snapshot will just have have been destroyed, and you could now only
@@ -67,10 +71,14 @@
 # 15,30,45 * * * *                         root   /root/zfs-replicator.sh 15min 7
 # 0 1-23 * * *                             root   /root/zfs-replicator.sh 1hour 24
 # 0 0 * * *                                root   /root/zfs-replicator.sh 1day 3 15
-#
-# The example is set on FreeBSD. On Linux you might need to remove "root" in front of the command entry.
 # This would give you 1 snapshot every 15 minutes for 2 hours, 1 snapshot every hour for 24 hours, and 1 snapshot every day for 2 days on the
-# master and 14 days on the slave. Read example 1 in regards to overlap and cleanup as it also applies to this example.
+# master and 14 days on the slave.
+#
+# Example 3 of use with crontab:
+#
+# 0,15,30,45 * * * *                         root   /root/zfs-replicator.sh 15min 1
+#
+# This would sync yout master to the slave every 15 minutes, only retaining the snapshot needed for the next incremental sync.
 #
 # --------------------------------------------------------------------------------------------------------------------------------------------
 #
@@ -86,7 +94,7 @@ PATH=/usr/bin:/sbin:/bin
 ##### CONFIG #####
 
 pool="tank"   # ZFS master pool to replicate
-destfs="tank/backups/tank-from-master"   # Destination zfs filesystem on slave. Can be the same as $pool if you want a 1-to-1 replica.
+destfs="tank/backups/tank-from-master"   # Destination zfs filesystem on slave. Can be the same as pool if you want a 1-to-1 replica.
 host="172.16.0.42"   # Slave address.
 user="root"   # User to ssh to slave. If not using root, you must manually set all permissions required on master and slave filesystems for this user.
 prefix="autosnap"   # Prefix for main snapshot name (will be the same for all generations).

@@ -263,7 +263,6 @@ if [ -z "$lastsucc" ]; then
 else
  if zfs list -H -o name -t snapshot | grep -e "^$lastsucc$" > /dev/null; then
   echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on master" >> $logfile
-  
   if ssh $user@$host zfs list -H -o name -t snapshot | grep -e "$lastsucc$" > /dev/null; then
    echo "`date +"%Y-%m-%d %H:%M:%S"` - last successful snapshot $lastsucc exists on slave - starting incremental sync" >> $logfile
    if [ `zfs list -H -o name -t snapshot | grep -e "^$pool@$prefix-" | grep -A 2 -e "^$lastsucc$" | wc -l` -gt "2" ]; then
@@ -288,8 +287,8 @@ else
      echo "`date +"%Y-%m-%d %H:%M:%S"` - $snapshot_now successfully synced to $host ." >> $logfile
      echo "lastsucc=$snapshot_now" > $lastsucclog
     else
-     echo "`date +"%Y-%m-%d %H:%M:%S"` - incremental zfs send $snapshot_now to $host failed." >> $logfile
-     echo "$monitor_critical_prefix incremental zfs send $snapshot_now to $host failed - sync failed - check manually and clear alert" > $monitor_output
+     echo "`date +"%Y-%m-%d %H:%M:%S"` - incremental zfs send $snapshot_now to $host failed. If you have had the slave filesystem mounted, you might need to manually rollback the slave to the last commen successful snapshot." >> $logfile
+     echo "$monitor_critical_prefix incremental zfs send $snapshot_now to $host failed - If you have had the slave filesystem mounted, you might need to manually rollback the slave to the last commen successful snapshot - check manually and clear alert" > $monitor_output
      rm $lockfile
      echo "`date +"%Y-%m-%d %H:%M:%S"` - exiting" >> $logfile
      exit 0

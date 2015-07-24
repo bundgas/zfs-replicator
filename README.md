@@ -1,5 +1,5 @@
 # zfs-replicator
-Incremental ZFS replicator and backup script with grandfather scheme (grandfather-father-son) support for FreeBSD and ZFS-on-Linux using zfs send/receive
+Incremental ZFS replicator and backup script with grandfather scheme support (grandfather-father-son) for FreeBSD and ZFS-on-Linux using zfs send/receive
 
 USAGE (should be used with crontab): zfs-replicator.sh (generation-name) (number of snapshots to keep)
 

@@ -7,7 +7,7 @@ This shell script recursively snapshots a given pool, and replicates it to anoth
 
 Only the first snapshot will be sent in 100% size, all following snapshots will be sent incrementally.
 
-The script outputs log and monitor output. The monitor output can be used for monitoring software such as Nagios.
+The script outputs log and monitor output. The monitor output can be used for monitoring software such as Nagios or Zabbix.
 
 If the slave is down, or the script is already running (ex. in case of a big initial sync that takes time), a snapshot will still be taken, and it will be synced with other missed snapshots when the slave is up and the script is not already running. While the slave is down or the script is already running, no cleaning will be done on the master or the slave, so snapshots will build up on the master until the slave is synced again. As soon as the master and slave are in sync again, cleaning will kick in and obey the keep rule(s).
 

@@ -82,7 +82,7 @@
 #
 # --------------------------------------------------------------------------------------------------------------------------------------------
 #
-# The script outputs a log and monitor output. The monitor output can be used for monitoring software such as Nagios.
+# The script outputs a log and monitor output. The monitor output can be used for monitoring software such as Nagios or Zabbix.
 # It uses arcfour128 as ssh cipher for transferring snapshots.
 #
 # If you want to be extra sure that you get monitor-output if the script fails, run it in crontab like this:
